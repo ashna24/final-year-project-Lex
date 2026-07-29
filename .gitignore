@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# OS
+.DS_Store
+
+# Model weights / large local downloads
+*.gguf
+*.bin
+
+# Editor
+.vscode/
