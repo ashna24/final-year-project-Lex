@@ -1,0 +1,7 @@
+requests
+paddleocr
+paddlepaddle
+# pinned together: transformers 4.47.0 requires huggingface-hub<1.0
+transformers==4.47.0
+huggingface-hub<1.0
+torch

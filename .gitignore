@@ -12,3 +12,12 @@ __pycache__/
 
 # Editor
 .vscode/
+
+# Dev log (personal notes)
+docs/devlog.md
+
+# pytest cache
+.pytest_cache/
+
+# Rejected models for reference
+archive/
