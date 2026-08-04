@@ -3,7 +3,7 @@ from model1b_paddleocr import extract_text_from_image
 
 # Checks the OCR function actually reads text from a real image
 def test_extracts_non_empty_text_from_clean_image(test_docs_dir):
-    image_path = test_docs_dir / "contract_clean.jpg"
+    image_path = test_docs_dir / "numbered_clean.jpg"
 
     result = extract_text_from_image(str(image_path))
 

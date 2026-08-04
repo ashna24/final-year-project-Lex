@@ -32,5 +32,5 @@ def extract_text_from_image(image_path, ocr_engine=None):
 
 if __name__ == "__main__":
     print("\n--- EXTRACTING LEGAL TEXT ---")
-    for sentence in extract_text_from_image('challan.jpg'):
+    for sentence in extract_text_from_image('numbered_clean.jpg'):
         print(sentence)

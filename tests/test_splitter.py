@@ -1,3 +1,4 @@
+from model1b_paddleocr import extract_text_from_image
 from splitter import split_into_clauses
 
 # a numbered employment agreement
@@ -91,3 +92,30 @@ def test_very_short_input_returns_single_clause():
 def test_empty_and_blank_input_returns_empty_list():
     assert split_into_clauses("") == []
     assert split_into_clauses("   \n  ") == []
+
+
+def test_section_headers_without_numbers_is_a_known_limitation(test_docs_dir):
+    image_path = test_docs_dir / "section_headers_no_numbers.jpg"
+    text = "\n".join(extract_text_from_image(str(image_path)))
+
+    clauses = split_into_clauses(text)
+
+    assert len(clauses) == 3  
+    assert not any(clause.strip().startswith("ARTICLE") for clause in clauses)
+    assert "ARTICLE II" in clauses[1]
+    assert "ARTICLE III" in clauses[2]
+
+
+# Checks clauses of very different lengths  come through intact 
+def test_handles_clauses_of_very_different_lengths(test_docs_dir):
+    image_path = test_docs_dir / "mixed_length_clauses.jpg"
+    text = "\n".join(extract_text_from_image(str(image_path)))
+
+    clauses = split_into_clauses(text)
+
+    assert len(clauses) == 4
+    assert clauses[0] == "SUPPLY AGREEMENT"
+    assert clauses[1] == "1. Definitions Confidential."
+    assert clauses[2].startswith("2. Indemnification")
+    assert "reasonable legal fees" in clauses[2]
+    assert clauses[3] == "3. Notices Notices shall be sent in writing."
