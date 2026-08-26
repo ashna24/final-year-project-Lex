@@ -94,3 +94,51 @@ def test_returns_empty_list_when_ocr_raises():
         results = process_document("corrupt.jpg")
 
     assert results == []
+
+
+# Checks the exact word-count boundary: fewer than 5 words gets skipped, 5+ gets classified
+def test_word_count_boundary_for_skipping():
+    fake_lines = ["Four short words here.", "This has exactly five words."]
+
+    with patch("models.pipeline.run_pipeline.extract_text_from_image", return_value=fake_lines), \
+         patch("models.pipeline.run_pipeline.analyze_contract_clause", return_value=FAKE_ANALYSIS) as mock_analyze:
+        results = process_document("doc.jpg")
+
+    assert len(results) == 2
+    assert results[0]["status"] == "skipped"
+    assert results[0]["reason"] == "insufficient content for classification"
+    assert "risk_level" not in results[0]
+    assert results[1]["risk_level"] == "Low"
+    assert mock_analyze.call_count == 1  # only the 5-word clause was actually sent to the classifier
+
+
+# Checks a real document with a bare 2-word title skips unmarked title,
+# #every numbered clause gets classified regardless of length
+def test_real_document_with_a_bare_title_skips_it(test_docs_dir):
+    image_path = str(test_docs_dir / "mixed_length_clauses.jpg")
+
+    with patch("models.pipeline.run_pipeline.analyze_contract_clause", return_value=FAKE_ANALYSIS) as mock_analyze:
+        results = process_document(image_path)
+
+    assert len(results) == 4  
+    assert results[0]["clause_text"] == "SUPPLY AGREEMENT"
+    assert results[0]["status"] == "skipped"  # unmarked preamble, under the word threshold
+    assert results[1]["risk_level"] == "Low"  # "1. Definitions Confidential." is short but marked
+    assert results[2]["risk_level"] == "Low"  # the long indemnification clause gets classified
+    assert results[3]["risk_level"] == "Low"  # "3. Notices.." has enough words too
+    assert mock_analyze.call_count == 3
+
+
+# Checks a short but marker-delimited clause is still classified
+def test_short_marked_clause_is_not_skipped():
+    fake_lines = ["1. Confidential.", "2. This is a longer clause with plenty of words to spare."]
+
+    with patch("models.pipeline.run_pipeline.extract_text_from_image", return_value=fake_lines), \
+         patch("models.pipeline.run_pipeline.analyze_contract_clause", return_value=FAKE_ANALYSIS) as mock_analyze:
+        results = process_document("doc.jpg")
+
+    assert len(results) == 2
+    assert results[0]["clause_text"] == "1. Confidential."  # only 2 words
+    assert "status" not in results[0]  # classified despite being under the word threshold
+    assert results[0]["risk_level"] == "Low"
+    assert mock_analyze.call_count == 2

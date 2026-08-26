@@ -94,19 +94,59 @@ def test_empty_and_blank_input_returns_empty_list():
     assert split_into_clauses("   \n  ") == []
 
 
-def test_section_headers_without_numbers_is_a_known_limitation(test_docs_dir):
+# "Schedule 1." and "Schedule 2." are referenced mid-sentence here
+INLINE_REFERENCE_TEXT = (
+    "The parties acknowledge the terms described in Schedule 1. Additional obligations "
+    "are described in Schedule 2. Governing law and jurisdiction are addressed separately below."
+)
+
+# A hand-typed contract using "ARTICLE I/II/III" headers instead of numbered clauses
+ARTICLE_HEADER_CONTRACT = (
+    "PARTNERSHIP AGREEMENT\n"
+    "This Agreement is made between the parties listed in Schedule 1.\n"
+    "ARTICLE I — PURPOSE\n"
+    "The parties agree to form a partnership for consulting services.\n"
+    "ARTICLE II — CAPITAL CONTRIBUTIONS\n"
+    "Each partner shall contribute capital as described in Schedule 2.\n"
+    "ARTICLE III — DISSOLUTION\n"
+    "This partnership may be dissolved by written agreement of all partners."
+)
+
+
+# Checks a mid-sentence reference isn't mistaken for a real clause marker
+def test_inline_numeric_references_are_not_treated_as_clause_markers():
+    clauses = split_into_clauses(INLINE_REFERENCE_TEXT)
+
+    # No numbered markers or headers found, so it falls back to sentence splitting
+    assert len(clauses) == 3
+
+
+# Checks "ARTICLE I" style headers are detected as clause boundaries
+def test_article_style_headers_are_detected_as_clause_boundaries():
+    clauses = split_into_clauses(ARTICLE_HEADER_CONTRACT)
+
+    assert len(clauses) == 4  
+    assert clauses[1].startswith("ARTICLE I")
+    assert clauses[2].startswith("ARTICLE II")
+    assert clauses[3].startswith("ARTICLE III")
+
+
+def test_real_scan_detects_article_headers_and_ignores_schedule_references(test_docs_dir):
     image_path = test_docs_dir / "section_headers_no_numbers.jpg"
     text = "\n".join(extract_text_from_image(str(image_path)))
 
     clauses = split_into_clauses(text)
 
-    assert len(clauses) == 3  
-    assert not any(clause.strip().startswith("ARTICLE") for clause in clauses)
-    assert "ARTICLE II" in clauses[1]
-    assert "ARTICLE III" in clauses[2]
+    assert len(clauses) == 4  # preamble + 3 ARTICLE sections
+    assert "ARTICLEI" in clauses[1] or "ARTICLE I" in clauses[1]
+    assert "PURPOSE" in clauses[1]
+    assert clauses[2].startswith("ARTICLE II")
+    assert "CAPITAL CONTRIBUTIONS" in clauses[2]
+    assert clauses[3].startswith("ARTICLE III")
+    assert "DISSOLUTION" in clauses[3]
 
 
-# Checks clauses of very different lengths  come through intact 
+# Checks clauses of different lengths  come through intact 
 def test_handles_clauses_of_very_different_lengths(test_docs_dir):
     image_path = test_docs_dir / "mixed_length_clauses.jpg"
     text = "\n".join(extract_text_from_image(str(image_path)))
