@@ -8,13 +8,12 @@ from models.pipeline.run_pipeline import process_document
 
 TEST_DOC_IMAGE = str(Path(__file__).resolve().parent.parent / "models" / "test_docs" / "numbered_clean.jpg")
 
-# A fake classifier result used instead of actually calling Ollama
+# A fake classifier result used instead of calling Ollama
 FAKE_ANALYSIS = {
     "risk_level": "Low",
     "confidence_score": 90,
     "explanation": "This is a mocked explanation.",
 }
-
 
 # Reads the real sample contract once so the tests below don't redo OCR each time
 @pytest.fixture(scope="module")
@@ -51,7 +50,7 @@ def test_classifier_failure_on_one_clause_does_not_stop_the_others(real_ocr_line
          patch("models.pipeline.run_pipeline.analyze_contract_clause", side_effect=flaky_analyze):
         results = process_document("numbered_clean.jpg")
 
-    assert len(results) == 5  # every clause still gets a result
+    assert len(results) == 5  # every clause  gets a result
     assert results[2]["risk_level"] == "Error"
     assert "Ollama is not running" in results[2]["explanation"]
     assert results[0]["risk_level"] == "Low"  # the other clauses still work fine
@@ -96,7 +95,7 @@ def test_returns_empty_list_when_ocr_raises():
     assert results == []
 
 
-# Checks the exact word-count boundary: fewer than 5 words gets skipped, 5+ gets classified
+# Checks the exact word count boundary: fewer than 5 words gets skipped, 5+ gets classified
 def test_word_count_boundary_for_skipping():
     fake_lines = ["Four short words here.", "This has exactly five words."]
 
@@ -109,11 +108,10 @@ def test_word_count_boundary_for_skipping():
     assert results[0]["reason"] == "insufficient content for classification"
     assert "risk_level" not in results[0]
     assert results[1]["risk_level"] == "Low"
-    assert mock_analyze.call_count == 1  # only the 5-word clause was actually sent to the classifier
+    assert mock_analyze.call_count == 1  # only the 5 word clause was actually sent to the classifier
 
 
-# Checks a real document with a bare 2-word title skips unmarked title,
-# #every numbered clause gets classified regardless of length
+# Checks a real document with a bare 2-word title skips unmarked title, every numbered clause gets classified 
 def test_real_document_with_a_bare_title_skips_it(test_docs_dir):
     image_path = str(test_docs_dir / "mixed_length_clauses.jpg")
 
@@ -129,7 +127,7 @@ def test_real_document_with_a_bare_title_skips_it(test_docs_dir):
     assert mock_analyze.call_count == 3
 
 
-# Checks a short but marker-delimited clause is still classified
+# Checks a short but marker delimited clause is still classified
 def test_short_marked_clause_is_not_skipped():
     fake_lines = ["1. Confidential.", "2. This is a longer clause with plenty of words to spare."]
 
@@ -142,3 +140,88 @@ def test_short_marked_clause_is_not_skipped():
     assert "status" not in results[0]  # classified despite being under the word threshold
     assert results[0]["risk_level"] == "Low"
     assert mock_analyze.call_count == 2
+
+
+# Checks translate= False(default) never touches the translator
+def test_translate_false_does_not_call_translator(real_ocr_lines):
+    with patch("models.pipeline.run_pipeline.extract_text_from_image", return_value=real_ocr_lines), \
+         patch("models.pipeline.run_pipeline.analyze_contract_clause", return_value=FAKE_ANALYSIS), \
+         patch("models.pipeline.run_pipeline.translate_to_urdu") as mock_translate:
+        results = process_document("numbered_clean.jpg")
+
+    mock_translate.assert_not_called()
+    for result in results:
+        assert "explanation_urdu" not in result
+
+
+# Checks translate= True adds an explanation urdu field for every classified clause
+def test_translate_true_adds_urdu_explanation(real_ocr_lines):
+    with patch("models.pipeline.run_pipeline.extract_text_from_image", return_value=real_ocr_lines), \
+         patch("models.pipeline.run_pipeline.analyze_contract_clause", return_value=FAKE_ANALYSIS), \
+         patch("models.pipeline.run_pipeline.translate_to_urdu", return_value="مترجم وضاحت") as mock_translate:
+        results = process_document("numbered_clean.jpg", translate=True)
+
+    assert mock_translate.call_count == 5  # once per classified clause
+    for result in results:
+        assert result["explanation_urdu"] == "مترجم وضاحت"
+    mock_translate.assert_any_call(FAKE_ANALYSIS["explanation"])
+
+
+# Checks skipped clauses are never sent for translation, even when translate= True
+def test_skipped_clauses_are_not_translated():
+    fake_lines = ["Four short words here.", "This has exactly five words."]
+
+    with patch("models.pipeline.run_pipeline.extract_text_from_image", return_value=fake_lines), \
+         patch("models.pipeline.run_pipeline.analyze_contract_clause", return_value=FAKE_ANALYSIS), \
+         patch("models.pipeline.run_pipeline.translate_to_urdu", return_value="ترجمہ") as mock_translate:
+        results = process_document("doc.jpg", translate=True)
+
+    assert results[0]["status"] == "skipped"
+    assert "explanation_urdu" not in results[0]
+    assert results[1]["explanation_urdu"] == "ترجمہ"
+    assert mock_translate.call_count == 1  # only the classified clause was translated
+
+
+# Checks a clause where classification itself failed is not sent for translation either
+def test_classifier_error_clauses_are_not_translated(real_ocr_lines):
+    with patch("models.pipeline.run_pipeline.extract_text_from_image", return_value=real_ocr_lines), \
+         patch("models.pipeline.run_pipeline.analyze_contract_clause", side_effect=ConnectionError("Ollama down")), \
+         patch("models.pipeline.run_pipeline.translate_to_urdu") as mock_translate:
+        results = process_document("numbered_clean.jpg", translate=True)
+
+    for result in results:
+        assert result["risk_level"] == "Error"
+        assert "explanation_urdu" not in result
+    mock_translate.assert_not_called()
+
+
+# Checks a translation failure doesn't discard the English classification already gathered
+def test_translation_failure_keeps_english_results_intact(real_ocr_lines):
+    with patch("models.pipeline.run_pipeline.extract_text_from_image", return_value=real_ocr_lines), \
+         patch("models.pipeline.run_pipeline.analyze_contract_clause", return_value=FAKE_ANALYSIS), \
+         patch("models.pipeline.run_pipeline.translate_to_urdu", side_effect=TimeoutError("translation timed out")):
+        results = process_document("numbered_clean.jpg", translate=True)
+
+    for result in results:
+        assert result["risk_level"] == "Low"
+        assert result["confidence_score"] == 90
+        assert result["explanation"] == FAKE_ANALYSIS["explanation"]
+        assert result["explanation_urdu"] is None
+
+
+# Real end-to-end test- however the classifier is still mocked
+def test_real_document_translation_end_to_end(real_ocr_lines):
+    fake_analysis = {
+        "risk_level": "Medium",
+        "confidence_score": 75,
+        "explanation": "The company must pay the contractor within 30 days or interest applies.",
+    }
+
+    with patch("models.pipeline.run_pipeline.extract_text_from_image", return_value=real_ocr_lines), \
+         patch("models.pipeline.run_pipeline.analyze_contract_clause", return_value=fake_analysis):
+        results = process_document("numbered_clean.jpg", translate=True)
+
+    assert len(results) == 5
+    for result in results:
+        assert isinstance(result["explanation_urdu"], str)
+        assert result["explanation_urdu"].strip() != ""

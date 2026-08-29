@@ -1,0 +1,47 @@
+[
+  {
+    "clause_number": 1,
+    "original_en": "This part of the contract says who's making the agreement. The Company (Horizon Consulting Ltd.) is the one creating this deal, and the Contractor is the person signing it.",
+    "translations": {
+      "HELSINKI_NLP": "عہد کا یہ حصہ ہے جو معاہدے کر رہا ہے۔ تنظیم ( ایچ) ایک بنانے والا ہے،",
+      "NLLB_200": "معاہدے کا یہ حصہ بتاتا ہے کہ معاہدہ کون کرتا ہے۔ کمپنی (ہوریجنٹ کنسلٹنگ لمیٹڈ) اس معاہدے کو بنانے والا ہے، اور ٹھیکیدار اس پر دستخط کرنے والا شخص ہے۔",
+      "LLAMA_PROMPT": "یہ حصہ معاہدے کے بتات دیتا ہے کہ اس معاہدے کی بنانے والا کس شخص ہے۔ کمپنی (ہارون کنسلٹنگ لمیٹڈ) اس معاہدے کی بنانے والی اور وہ Persons جو اس پر دستخط کر رہے ہیںContractor یہ شخص ہوتا ہے۔"
+    }
+  },
+  {
+    "clause_number": 2,
+    "original_en": "This clause says that the person called the 'Contractor' will do their job right and give good advice about using software. It doesn't say what specific things they have to do or how long it will take, so it's a pretty standard part of any contract.",
+    "translations": {
+      "HELSINKI_NLP": "یہ وسیماس بیان کرتا ہے کہ جس شخص نے 'وی بی' کو اپنے درست کام کرنے اور سافٹ ویئر استعمال کرنے کے سلسلے میں اچھی مشورت دی ہے یہ نہیں کہا کہ ان کو کیا کرنا چاہیے یا وہ یہ کہ وہ کتنی دیر تک کریں گے",
+      "NLLB_200": "اس شق میں کہا گیا ہے کہ 'کنٹریکٹر' نامی شخص اپنا کام صحیح طریقے سے کرے گا اور سافٹ ویئر کے استعمال کے بارے میں اچھی مشورہ دے گا۔ اس میں یہ نہیں کہا گیا ہے کہ انہیں کیا مخصوص کام کرنا ہے یا اس میں کتنا وقت لگے گا ، لہذا یہ کسی بھی معاہدے کا ایک معیاری حصہ ہے۔",
+      "LLAMA_PROMPT": "یہ Clause کہتا ہے کہ شخص کو 'کونٹرैकٹر' کا نام دیا گیا ہے، اپنے کام کو اچھا کرنے اور سافٹ ویئر کے استعمال کے بارے میں بہت اچھی مشورہ دینے کا وعدہ دیتا ہے۔ اس نہیں کہتا ہے کہ وہ کون سے خاص Things کرنا ہیں یا ان کی تکمیل کیسے کرنے ہوں گے، اس لیے یہ ایک ایسا معاہدہ کا حصہ ہے جس میں کبھی بھی معاہدہ میں شامل نہیں ہوتا۔"
+    }
+  },
+  {
+    "clause_number": 3,
+    "original_en": "This clause says that the company must pay the contractor money within 30 days after they send an invoice. If it takes longer than 30 days, the company will have to pay extra interest on the payment.",
+    "translations": {
+      "HELSINKI_NLP": "کمپنی کا کہنا ہے کہ اس کمپنی کو 30 دن کے بعد مزدوروں کو رقم ادا کرنی پڑتی ہے. اگر 30 دن سے زیادہ زیادہ ہو جائے تو کمپنی کو رقم ادا کرنی ہوگی.",
+      "NLLB_200": "اس شق میں کہا گیا ہے کہ کمپنی کو ٹھیکیدار کو ان کے بھیجنے کے بعد 30 دن کے اندر اندر رقم ادا کرنی ہوگی۔ اگر اس میں 30 دن سے زیادہ وقت لگتا ہے تو کمپنی کو ادائیگی پر اضافی سود ادا کرنا ہوگا۔",
+      "LLAMA_PROMPT": "یہ Clause Company کو Contractor کو Bill بھیج کر 30 روز کے اندر پیمینٹ کرنا حاضری دیتا ہے۔ اگر اس میں 30 روز سے زیادہ وقت لگتا ہے تو کمپنی کوBill پر extra Interest ادا کرنا پیا ہوگا۔"
+    }
+  },
+  {
+    "clause_number": 4,
+    "original_en": "This clause means that the person hired (Contractor) promises not to share any secret or private information from the company they work for with anyone else. Even after their contract ends, they still can't share this info.",
+    "translations": {
+      "HELSINKI_NLP": "اس کا مطلب یہ ہے کہ جس شخص کو اپنے کام کے لیے کوئی خفیہ یا نجی معلومات نہیں دی جاتی وہ کسی دوسرے کے ساتھ کام کر کے کام کرتی ہیں،",
+      "NLLB_200": "اس شق کا مطلب یہ ہے کہ ملازم (کترے والا) وعدہ کرتا ہے کہ وہ کسی اور کے ساتھ اس کمپنی کی کوئی خفیہ یا نجی معلومات شیئر نہیں کرے گا جس کے لئے وہ کام کرتا ہے۔ ان کے معاہدے کی مدت ختم ہونے کے بعد بھی وہ یہ معلومات شیئر نہیں کرسکتے ہیں۔",
+      "LLAMA_PROMPT": "یہ Clause کا مطلب ہے کہContractor(نئے شخص کو hired karta hai)Company کے لیے working karne wala نہیں دوسرے کسی کے ساتھ کisi بھی گھوٹالہ یا حسی information sharing nahi karega۔ Contract ka ختم ہونے ke baad bhi ان کے پاس یہ information share karne ki azadi nahin hai."
+    }
+  },
+  {
+    "clause_number": 5,
+    "original_en": "This clause means that either side can end the agreement with 14 days' written notice. This is a standard provision that allows businesses to leave contracts if they need to.",
+    "translations": {
+      "HELSINKI_NLP": "یہ کاروبار 14 دنوں کے ساتھ ختم کر سکتے ہیں۔ یہ ایک معیار ہے جو کاروبار کو چھوڑ دینے کی اجازت دیتا ہے۔ اگر انہیں ضرورت ہو",
+      "NLLB_200": "اس شق کا مطلب یہ ہے کہ دونوں فریق معاہدے کو 14 دن کی تحریری نوٹس کے ساتھ ختم کرسکتے ہیں۔ یہ ایک معیاری شق ہے جو کاروباری اداروں کو معاہدے چھوڑنے کی اجازت دیتی ہے اگر وہ ضرورت ہو تو۔",
+      "LLAMA_PROMPT": "یہ Clause یہاں کے معنی ہیں کہ دونوں طرف سے، 14 دن کی لکھی ہوئی پیغام کے ساتھ منعقدہ معاہدے کو ختم کرنے کی اجازت ہے۔ یہ ایک عام ترتیبات ہے جو کاروباروں کو انہیں چاہیں تو معاہدوں سے کھٹنا میں مدد دیتی ہے۔"
+    }
+  }
+]

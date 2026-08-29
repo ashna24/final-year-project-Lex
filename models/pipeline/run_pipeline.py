@@ -7,10 +7,10 @@ from models.clause_splitter.splitter import (
     split_into_clauses,
 )
 from models.extraction.model1b_paddleocr import extract_text_from_image
+from models.translation.model4_nllb import translate_to_urdu
 
 # Below this word count, an unmarked clause (e.g. a title) is treated as too
-# trivial to classify, and not sent to the Llama classifier. Marked clauses (numbered or
-# ARTICLE-style) skip this check entirely.
+# trivial to classify, and not sent to the Llama classifier. Marked clauses (numbered or ARTICLE-style) skip this check entirely.
 MIN_CLAUSE_WORD_COUNT = 5
 
 
@@ -37,20 +37,34 @@ def _analyze_clause_safely(clause_text):
     return {"clause_text": clause_text, **analysis}
 
 
+# Translates a clause's explanation to Urdu
+def _translate_explanation_safely(explanation):
+    try:
+        return translate_to_urdu(explanation)
+    except Exception:
+        return None
+
+
 # Decides whether to classify a clause or skip it as too short to mean anything.
-# Marked clauses always get classified, regardless of length.
-def _process_clause(clause_text):
+def _process_clause(clause_text, translate):
     if not _starts_with_marker(clause_text) and not _has_enough_content(clause_text):
         return {
             "clause_text": clause_text,
             "status": "skipped",
             "reason": "insufficient content for classification",
         }
-    return _analyze_clause_safely(clause_text)
+
+    result = _analyze_clause_safely(clause_text)
+
+    if translate and result["risk_level"] != "Error":
+        result["explanation_urdu"] = _translate_explanation_safely(result["explanation"])
+
+    return result
 
 
-# Runs one document image through extraction, splitting, and classification end-to-end
-def process_document(image_path: str) -> list[dict]:
+# Runs one document image through extraction, splitting, and classification end-to-end.
+# optionally translates each classified clause's explanation to Urdu.
+def process_document(image_path: str, translate: bool = False) -> list[dict]:
     try:
         lines = extract_text_from_image(image_path)
     except Exception:
@@ -59,4 +73,4 @@ def process_document(image_path: str) -> list[dict]:
     text = "\n".join(lines)
     clauses = split_into_clauses(text)
 
-    return [_process_clause(clause) for clause in clauses]
+    return [_process_clause(clause, translate) for clause in clauses]
