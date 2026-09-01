@@ -5,3 +5,6 @@ paddlepaddle
 transformers==4.47.0
 huggingface-hub<1.0
 torch
+fastapi
+uvicorn
+python-multipart  # required by FastAPI at runtime to parse UploadFile/form data
