@@ -25,7 +25,9 @@ def analyze_contract_clause(clause_text):
         "model": MODEL_NAME,
         "prompt": f"{SYSTEM_PROMPT}\n\nClause to analyze:\n{clause_text}",
         "format": "json",
-        "stream": False
+        "stream": False,
+        # Unloads the model right after each reply so it does not stay in memory next to NLLB
+        "keep_alive": 0,
     }
 
     try:

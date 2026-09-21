@@ -1,3 +1,4 @@
+from unittest.mock import MagicMock, patch
 from clause_classifier import analyze_contract_clause
 
 CLEAN_CLAUSE = (  # expected Low risk
@@ -57,3 +58,19 @@ def test_predatory_clause_is_classified_as_high_risk(require_ollama):
     result = analyze_contract_clause(HIGH_RISK_CLAUSE)
 
     assert result["risk_level"] == "High"
+
+
+# Checks keep_alive=0 is sent with every request so Ollama unloads the model straight away
+def test_sends_keep_alive_zero_to_unload_model_after_response():
+    fake_response = MagicMock()
+    fake_response.status_code = 200
+    fake_response.json.return_value = {
+        "response": '{"risk_level": "Low", "confidence_score": 90, "explanation": "mock"}'
+    }
+
+    with patch("clause_classifier.requests.post", return_value=fake_response) as mock_post:
+        analyze_contract_clause(CLEAN_CLAUSE)
+
+    mock_post.assert_called_once()
+    sent_payload = mock_post.call_args.kwargs["json"]
+    assert sent_payload["keep_alive"] == 0
