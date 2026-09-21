@@ -1,3 +1,5 @@
+# This is the rejected Helsinki NLP translation model and NLLB replaced it
+# It is kept only for the model comparison and its tests
 import sys
 
 from transformers import pipeline
@@ -9,13 +11,11 @@ _translator = None
 
 # Sets up the English to Urdu translator
 def load_translator():
-    """Load the English->Urdu translation pipeline. Downloads model weights on first call."""
     return pipeline("text2text-generation", model=MODEL_NAME)  
 
 
 # Reuses the same translator instead of loading it again each time
 def get_default_translator():
-    """Lazily initialize and cache a module-level translation pipeline."""
     global _translator
     if _translator is None:
         _translator = load_translator()
@@ -24,7 +24,6 @@ def get_default_translator():
 
 # Translates one English sentence into Urdu
 def translate_to_urdu(text, translator=None, max_length=512):
-    """Translate a single English string to Urdu and return the resulting string."""
     if translator is None:
         translator = get_default_translator()
 
