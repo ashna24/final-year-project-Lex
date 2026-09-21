@@ -6,7 +6,11 @@ from models.clause_splitter.splitter import (
     SECTION_HEADER_PATTERN,
     split_into_clauses,
 )
-from models.extraction.model1b_paddleocr import extract_text_from_image, unload_ocr_engine
+from models.extraction.model1b_paddleocr import (
+    extract_text_from_image,
+    extract_text_from_pdf,
+    unload_ocr_engine,
+)
 from models.translation.model4_nllb import translate_to_urdu, unload_translator
 
 # Below this word count, an unmarked clause (e.g. a title) is treated as too trivial to classify, and not sent to the Llama classifier. 
@@ -62,13 +66,20 @@ def _process_clause(clause_text, translate):
     return result
 
 
-# Runs one document image through extraction, splitting, and classification end-to-end.
-# optionally translates each classified clause's explanation to Urdu.
-def process_document(image_path: str, translate: bool = False) -> list[dict]:
+# Picks the right extraction path for a PDF/ a plain image file.
+def _extract_lines(document_path):
+    if document_path.lower().endswith(".pdf"):
+        return extract_text_from_pdf(document_path)
+    return extract_text_from_image(document_path)
+
+
+# Runs one image/ PDF through OCR then clause splitting then classification
+# Can also translate each explanation to Urdu
+def process_document(document_path: str, translate: bool = False) -> list[dict]:
     try:
-        lines = extract_text_from_image(image_path)
+        lines = _extract_lines(document_path)
     except Exception:
-        return []  # unreadable or corrupt image
+        return []  # unreadable or corrupt document
     finally:
         # OCR is finished so freeing it before the other models load
         unload_ocr_engine()

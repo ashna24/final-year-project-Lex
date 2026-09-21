@@ -265,3 +265,48 @@ def test_unload_translator_not_called_when_translate_false(real_ocr_lines):
         process_document("numbered_clean.jpg", translate=False)
 
     mock_unload.assert_not_called()
+
+
+# Checks a .pdf path goes to the PDF extraction and not the image one
+def test_pdf_path_is_routed_to_pdf_extraction():
+    with patch("models.pipeline.run_pipeline.extract_text_from_pdf", return_value=["Clause one is fine."]) as mock_pdf, \
+         patch("models.pipeline.run_pipeline.extract_text_from_image") as mock_image, \
+         patch("models.pipeline.run_pipeline.analyze_contract_clause", return_value=FAKE_ANALYSIS):
+        process_document("contract.pdf")
+
+    mock_pdf.assert_called_once_with("contract.pdf")
+    mock_image.assert_not_called()
+
+
+# Checks a .PDF path (uppercase extension) is still routed correctly
+def test_pdf_path_routing_is_case_insensitive():
+    with patch("models.pipeline.run_pipeline.extract_text_from_pdf", return_value=[]) as mock_pdf, \
+         patch("models.pipeline.run_pipeline.extract_text_from_image") as mock_image:
+        process_document("CONTRACT.PDF")
+
+    mock_pdf.assert_called_once_with("CONTRACT.PDF")
+    mock_image.assert_not_called()
+
+
+# Checks other file types still go through the normal image extraction
+def test_non_pdf_path_is_routed_to_image_extraction(real_ocr_lines):
+    with patch("models.pipeline.run_pipeline.extract_text_from_image", return_value=real_ocr_lines) as mock_image, \
+         patch("models.pipeline.run_pipeline.extract_text_from_pdf") as mock_pdf, \
+         patch("models.pipeline.run_pipeline.analyze_contract_clause", return_value=FAKE_ANALYSIS):
+        process_document("numbered_clean.jpg")
+
+    mock_image.assert_called_once_with("numbered_clean.jpg")
+    mock_pdf.assert_not_called()
+
+
+# Real PDF built from numbered_clean.jpg run through the full pipeline
+def test_processes_a_real_pdf_into_classified_clauses():
+    pdf_path = str(Path(__file__).resolve().parent.parent / "models" / "test_docs" / "numbered_clean.pdf")
+
+    with patch("models.pipeline.run_pipeline.analyze_contract_clause", return_value=FAKE_ANALYSIS) as mock_analyze:
+        results = process_document(pdf_path)
+
+    assert len(results) == 5  # same document content as numbered_clean.jpg
+    assert mock_analyze.call_count == 5
+    for result in results:
+        assert result["risk_level"] == "Low"

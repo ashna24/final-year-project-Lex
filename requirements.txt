@@ -8,3 +8,4 @@ torch
 fastapi
 uvicorn
 python-multipart  # required by FastAPI at runtime to parse UploadFile/form data
+pymupdf  # renders PDF pages to images for OCR and validates uploaded PDFs

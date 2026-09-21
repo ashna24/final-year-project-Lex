@@ -1,6 +1,11 @@
 from unittest.mock import patch
 import model1b_paddleocr
-from model1b_paddleocr import extract_text_from_image, get_default_ocr_engine, unload_ocr_engine
+from model1b_paddleocr import (
+    extract_text_from_image,
+    extract_text_from_pdf,
+    get_default_ocr_engine,
+    unload_ocr_engine,
+)
 
 
 # Checks the OCR function actually reads text from a real image
@@ -25,6 +30,43 @@ def test_returns_empty_list_when_no_result():
 
     assert result == []
 
+
+# Checks OCR reads text from a real PDF built from numbered_clean.jpg
+def test_extracts_non_empty_text_from_a_real_pdf(test_docs_dir):
+    pdf_path = test_docs_dir / "numbered_clean.pdf"
+
+    result = extract_text_from_pdf(str(pdf_path))
+
+    assert isinstance(result, list)
+    assert len(result) > 0
+    assert any(line.strip() != "" for line in result)
+
+
+# Checks every page of a PDF is read in order and the text is joined together
+def test_extracts_text_from_every_page_in_order():
+    class FakePage:
+        def get_pixmap(self, dpi):
+            return type("FakePixmap", (), {"save": lambda self, path: None})()
+
+    class FakeDocument:
+        def __init__(self, pages):
+            self._pages = pages
+
+        def __iter__(self):
+            return iter(self._pages)
+
+        def close(self):
+            pass
+
+    fake_document = FakeDocument([FakePage(), FakePage(), FakePage()])
+    page_lines = [["Page one text"], ["Page two text"], ["Page three text"]]
+
+    with patch("model1b_paddleocr.pymupdf.open", return_value=fake_document), \
+         patch("model1b_paddleocr.extract_text_from_image", side_effect=page_lines) as mock_extract:
+        result = extract_text_from_pdf("unused.pdf")
+
+    assert result == ["Page one text", "Page two text", "Page three text"]
+    assert mock_extract.call_count == 3
 
 # Checks unloading clears the cache and the next call builds a fresh engine
 def test_unload_ocr_engine_clears_cache_and_forces_fresh_reload():

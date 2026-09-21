@@ -10,6 +10,9 @@ client = TestClient(app)
 SAMPLE_IMAGE_PATH = Path(__file__).resolve().parent.parent / "models" / "test_docs" / "numbered_clean.jpg"
 SAMPLE_IMAGE_BYTES = SAMPLE_IMAGE_PATH.read_bytes()
 
+SAMPLE_PDF_PATH = Path(__file__).resolve().parent.parent / "models" / "test_docs" / "numbered_clean.pdf"
+SAMPLE_PDF_BYTES = SAMPLE_PDF_PATH.read_bytes()
+
 FAKE_RESULTS = [
     {"clause_text": "SERVICE AGREEMENT ...", "risk_level": "Low", "confidence_score": 90, "explanation": "mock"},
 ]
@@ -44,6 +47,42 @@ def test_analyze_with_invalid_image_returns_400():
 
     assert response.status_code == 400
     assert "not a valid image" in response.json()["detail"].lower()
+
+
+# Checks a fake PDF gets a clear 400 instead of crashing
+def test_analyze_with_invalid_pdf_returns_400():
+    response = client.post(
+        "/analyze", files={"file": ("not_a_real.pdf", b"this is not a real pdf", "application/pdf")}
+    )
+
+    assert response.status_code == 400
+    assert "not a valid pdf" in response.json()["detail"].lower()
+
+
+# Checks a real PDF upload is accepted and reaches the pipeline as a .pdf path
+def test_analyze_with_valid_pdf_reaches_the_pipeline():
+    with patch("api.main.process_document", return_value=FAKE_RESULTS) as mock_process:
+        response = client.post(
+            "/analyze", files={"file": ("contract.pdf", SAMPLE_PDF_BYTES, "application/pdf")}
+        )
+
+    assert response.status_code == 200
+    assert response.json() == FAKE_RESULTS
+    call_path = mock_process.call_args.args[0]
+    assert call_path.endswith(".pdf")
+
+
+# Checks a PDF with no file extension still reaches the pipeline as .pdf
+# The content type says PDF so the temp file must end in .pdf
+def test_analyze_with_pdf_content_type_but_no_extension_reaches_the_pipeline():
+    with patch("api.main.process_document", return_value=FAKE_RESULTS) as mock_process:
+        response = client.post(
+            "/analyze", files={"file": ("contract", SAMPLE_PDF_BYTES, "application/pdf")}
+        )
+
+    assert response.status_code == 200
+    call_path = mock_process.call_args.args[0]
+    assert call_path.endswith(".pdf")
 
 
 # Checks a successful analysis returns the pipeline's own result list as JSON

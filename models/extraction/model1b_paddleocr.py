@@ -1,6 +1,11 @@
 import gc
+import tempfile
 
+import pymupdf
 from paddleocr import PaddleOCR
+
+# Sharp enough for OCR without making huge page images
+PDF_RENDER_DPI = 200
 
 _ocr_engine = None
 
@@ -31,6 +36,21 @@ def extract_text_from_image(image_path, ocr_engine=None):
     if result and len(result) > 0:
         return result[0].get('rec_texts', [])  # recognized lines live under this key
     return []
+
+
+# Renders every page of a PDF to an image and OCRs each one in turn
+def extract_text_from_pdf(pdf_path, ocr_engine=None):
+    lines = []
+    document = pymupdf.open(pdf_path)
+    try:
+        for page in document:
+            pixmap = page.get_pixmap(dpi=PDF_RENDER_DPI)
+            with tempfile.NamedTemporaryFile(suffix=".png") as page_image:
+                pixmap.save(page_image.name)
+                lines.extend(extract_text_from_image(page_image.name, ocr_engine=ocr_engine))
+    finally:
+        document.close()
+    return lines
 
 
 # Drops the cached OCR engine and forces Python to give the freed memory back to the OS
