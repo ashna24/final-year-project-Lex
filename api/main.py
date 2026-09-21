@@ -6,6 +6,7 @@ import tempfile
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image, UnidentifiedImageError
 
 from models.pipeline.run_pipeline import process_document
@@ -13,6 +14,14 @@ from models.pipeline.run_pipeline import process_document
 logger = logging.getLogger("lex.api")
 
 app = FastAPI(title="Lex API")
+
+# Allows the local Vite dev server to call this API from the browser
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/health")
