@@ -11,6 +11,7 @@ Analyze the following clause and output your response STRICTLY as a JSON object 
    - Use "High" for severe financial penalties, predatory traps, extreme liability shifts, or highly unusual restrictions.
    - Use "Medium" for standard industry obligations, temporary restrictions, or vague timelines (e.g., standard 6-month non-solicitation, "reasonable" effort clauses).
    - Use "Low" for standard legal boilerplate (e.g., severability, basic jurisdiction).
+   - Unfilled template fields (blank underscores like "_______", empty signature lines, or missing names/dates/amounts) are NOT by themselves a risk factor. Base the risk level on the clause's actual structure and obligations, not on which specific values happen to be missing.
 2. "confidence_score": An integer from 0 to 100 representing how confident you are in your classification.
 3. "explanation": A plain English explanation of what this clause actually means, written at a 12-year-old reading level.
 Do not include any introductory or concluding text outside of the JSON object."""
