@@ -1,0 +1,119 @@
+:root {
+  color-scheme: dark;
+
+  /* Neutrals */
+  --bg: #1a1918;
+  --bg-header: #100f0f;
+  --surface: #232120;
+  --surface-sunken: #1f1d1c;
+
+  /* Brand */
+  --accent: #ec3013;
+  --accent-hover: #dd2b0f;
+  --accent-tint-bg: #2b1a15;
+  --accent-text: #ff8a70;
+  --accent-text-strong: #ffa591;
+
+  /* Text */
+  --text: #f0eeed;
+  --text-secondary: #ded9d7;
+  --text-muted: #a9a29f;
+  --text-faint: #8f8986;
+  --text-faintest: #7f7a77;
+  --text-original: #9a9491;
+
+  /* Lines */
+  --border: rgba(240, 238, 237, 0.12);
+  --border-strong: rgba(240, 238, 237, 0.3);
+  --border-button: rgba(240, 238, 237, 0.35);
+  --border-dashed: rgba(240, 238, 237, 0.35);
+
+  --track: #2e2b2a;
+  --pip-on: #b5afac;
+  --pip-off: #3a3736;
+
+  --link: #ff7a5e;
+  --link-hover: #ffa591;
+
+  /* Risk levels */
+  --risk-high-bg: #3a1611;
+  --risk-high-text: #ffb0a0;
+  --risk-high-border: #e04a2a;
+
+  --risk-medium-bg: #332711;
+  --risk-medium-text: #f2cd85;
+  --risk-medium-border: #cfa22c;
+
+  --risk-low-bg: #16291d;
+  --risk-low-text: #a3d5b0;
+  --risk-low-border: #4e9463;
+
+  --risk-skipped-bg: #2b2827;
+  --risk-skipped-text: #a9a3a0;
+  --risk-skipped-border: #6b6664;
+
+  font-family: "Archivo Variable", "Archivo", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+  border-radius: 0 !important;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+h1,
+h2,
+h3,
+p,
+ul,
+ol,
+dl {
+  margin: 0;
+}
+
+button,
+input {
+  font-family: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+a {
+  color: var(--link);
+}
+
+a:hover {
+  color: var(--link-hover);
+}
+
+::selection {
+  background: rgba(236, 48, 19, 0.35);
+}
+
+button:focus-visible,
+input:focus-visible,
+a:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

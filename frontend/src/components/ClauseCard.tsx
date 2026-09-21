@@ -1,0 +1,145 @@
+import { useEffect, useState } from "react";
+import { ChevronDown } from "lucide-react";
+import type { ClauseResult, Language } from "../types";
+import { isSkipped } from "../types";
+import { RiskBadge, SkippedBadge } from "./RiskBadge";
+import { confidencePipCount } from "../lib/confidence";
+import { splitExplanation } from "../lib/splitExplanation";
+import { queueTranslation } from "../lib/translationQueue";
+
+interface ClauseCardProps {
+  clause: ClauseResult;
+  index: number;
+  language: Language;
+}
+
+function ConfidencePips({ confidence }: { confidence: number }) {
+  const filled = confidencePipCount(confidence);
+  return (
+    <span className="clause-card__confidence">
+      <span className="clause-card__confidence-label">Confidence {confidence}%</span>
+      <span className="clause-card__pips" aria-hidden="true">
+        {[0, 1, 2, 3].map((i) => (
+          <span key={i} className={`clause-card__pip${i < filled ? " clause-card__pip--on" : ""}`} />
+        ))}
+      </span>
+    </span>
+  );
+}
+
+// The design hides the default arrow so this chevron shows it can be clicked
+function OriginalWording({ text }: { text: string }) {
+  return (
+    <details className="clause-card__original">
+      <summary>
+        Original wording
+        <ChevronDown className="clause-card__original-chevron" aria-hidden="true" size={14} strokeWidth={2} />
+      </summary>
+      <p>{text}</p>
+    </details>
+  );
+}
+
+// Gets Urdu on demand when the language needs it and the clause has none yet
+function useUrduExplanation(explanation: string, explanationUrdu: string | null | undefined, needed: boolean) {
+  const [fetched, setFetched] = useState<string | null>(null);
+  const [state, setState] = useState<"idle" | "loading" | "error">("idle");
+
+  useEffect(() => {
+    if (!needed || explanationUrdu || fetched || state === "loading") return;
+    let cancelled = false;
+    setState("loading");
+    queueTranslation(explanation)
+      .then((translation) => {
+        if (!cancelled) {
+          setFetched(translation);
+          setState("idle");
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setState("error");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [needed, explanationUrdu, explanation]);
+
+  return { text: explanationUrdu ?? fetched, state };
+}
+
+export function ClauseCard({ clause, index, language }: ClauseCardProps) {
+  const kicker = `Clause ${index + 1}`;
+  const skipped = isSkipped(clause);
+
+  const wantsUrdu = language === "both" || language === "ur";
+  const showEnglish = language === "en" || language === "both";
+  const isError = !skipped && clause.risk_level === "Error";
+
+  // Hooks cannot be skipped so this runs for skipped clauses too but fetches nothing
+  const urdu = useUrduExplanation(
+    skipped ? "" : clause.explanation,
+    skipped ? null : clause.explanation_urdu,
+    !skipped && wantsUrdu && !isError,
+  );
+
+  if (skipped) {
+    return (
+      <article className="clause-card" data-risk="skipped">
+        <div className="clause-card__meta">
+          <SkippedBadge />
+          <span className="clause-card__kicker">{kicker}</span>
+        </div>
+        <h3 className="clause-card__title">This part wasn't analysed.</h3>
+        <p className="clause-card__explanation">{clause.reason}</p>
+        <OriginalWording text={clause.clause_text} />
+      </article>
+    );
+  }
+
+  const { title, body } = splitExplanation(clause.explanation);
+
+  return (
+    <article className="clause-card" data-risk={clause.risk_level.toLowerCase()}>
+      <div className="clause-card__meta">
+        <RiskBadge level={clause.risk_level} />
+        <span className="clause-card__kicker">{kicker}</span>
+        {!isError && (
+          <div className="clause-card__meta-right">
+            <ConfidencePips confidence={clause.confidence_score} />
+          </div>
+        )}
+        {isError && <span className="clause-card__meta-right clause-card__no-score">No score</span>}
+      </div>
+
+      <h3 className="clause-card__title">{title}</h3>
+
+      {showEnglish && body && <p className="clause-card__explanation">{body}</p>}
+      {showEnglish && !body && language === "en" && (
+        // Show the full explanation so the card is not left empty
+        <p className="clause-card__explanation">{title}</p>
+      )}
+
+      {wantsUrdu && !isError && (
+        <div className="clause-card__urdu-block">
+          <div className="clause-card__urdu-header">
+            <span className="clause-card__urdu-kicker">اردو · Urdu</span>
+            <span className="clause-card__urdu-direction">Right to left</span>
+          </div>
+          {urdu.state === "loading" && <p className="clause-card__urdu-status">Translating…</p>}
+          {urdu.state === "error" && (
+            <p className="clause-card__urdu-status clause-card__urdu-status--error" role="alert">
+              Couldn't translate this clause. Try again shortly.
+            </p>
+          )}
+          {urdu.text && (
+            <p className="clause-card__explanation clause-card__explanation--urdu" dir="rtl" lang="ur">
+              {urdu.text}
+            </p>
+          )}
+        </div>
+      )}
+
+      <OriginalWording text={clause.clause_text} />
+    </article>
+  );
+}
