@@ -8,8 +8,10 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image, UnidentifiedImageError
+from pydantic import BaseModel
 
 from models.pipeline.run_pipeline import process_document
+from models.translation.model4_nllb import translate_to_urdu
 
 logger = logging.getLogger("lex.api")
 
@@ -22,6 +24,10 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+
+class TranslateRequest(BaseModel):
+    text: str | None = None
 
 
 @app.get("/health")
@@ -56,3 +62,20 @@ async def analyze(file: UploadFile | None = None, translate: bool = False):
             raise HTTPException(status_code=500, detail="An internal error occurred while processing the document")
 
     return results
+
+
+@app.post("/translate")
+def translate_text(request: TranslateRequest):
+    if request.text is None:
+        raise HTTPException(status_code=400, detail="No text provided")
+
+    if not request.text.strip():
+        raise HTTPException(status_code=400, detail="Text field is empty")
+
+    try:
+        translation = translate_to_urdu(request.text)
+    except Exception:
+        logger.exception("translate_to_urdu failed for a /translate request")
+        raise HTTPException(status_code=500, detail="An internal error occurred while translating the text")
+
+    return {"translation": translation}
