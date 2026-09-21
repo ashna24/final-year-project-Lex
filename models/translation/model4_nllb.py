@@ -1,3 +1,4 @@
+import gc
 import os
 import sys
 
@@ -63,6 +64,13 @@ def translate_to_urdu(text, translator=None, max_length=512):
 
     result = translator(text, max_length=max_length)
     return result[0]['translation_text']
+
+
+# Drops the cached translator and forces Python to give the freed memory back to the OS
+def unload_translator():
+    global _translator
+    _translator = None
+    gc.collect()
 
 
 if __name__ == "__main__":

@@ -1,6 +1,5 @@
 from pathlib import Path
 from unittest.mock import patch
-
 import pytest
 
 from models.extraction.model1b_paddleocr import extract_text_from_image
@@ -225,3 +224,44 @@ def test_real_document_translation_end_to_end(real_ocr_lines):
     for result in results:
         assert isinstance(result["explanation_urdu"], str)
         assert result["explanation_urdu"].strip() != ""
+
+
+# Checks OCR is unloaded right after extraction and before classification starts
+def test_unload_ocr_engine_called_after_successful_extraction(real_ocr_lines):
+    with patch("models.pipeline.run_pipeline.extract_text_from_image", return_value=real_ocr_lines), \
+         patch("models.pipeline.run_pipeline.analyze_contract_clause", return_value=FAKE_ANALYSIS), \
+         patch("models.pipeline.run_pipeline.unload_ocr_engine") as mock_unload:
+        process_document("numbered_clean.jpg")
+
+    mock_unload.assert_called_once()
+
+
+# Checks the OCR engine is still unloaded even when extraction itself raises
+def test_unload_ocr_engine_called_even_when_extraction_raises():
+    with patch("models.pipeline.run_pipeline.extract_text_from_image", side_effect=OSError("cannot identify image file")), \
+         patch("models.pipeline.run_pipeline.unload_ocr_engine") as mock_unload:
+        results = process_document("corrupt.jpg")
+
+    assert results == []
+    mock_unload.assert_called_once()
+
+
+# Checks unload_translator still runs if something fails while processing clauses
+def test_unload_translator_called_even_when_clause_processing_raises(real_ocr_lines):
+    with patch("models.pipeline.run_pipeline.extract_text_from_image", return_value=real_ocr_lines), \
+         patch("models.pipeline.run_pipeline._process_clause", side_effect=RuntimeError("unexpected failure")), \
+         patch("models.pipeline.run_pipeline.unload_translator") as mock_unload:
+        with pytest.raises(RuntimeError):
+            process_document("numbered_clean.jpg", translate=True)
+
+    mock_unload.assert_called_once()
+
+
+# Checks unload_translator is never invoked at all when translate=False
+def test_unload_translator_not_called_when_translate_false(real_ocr_lines):
+    with patch("models.pipeline.run_pipeline.extract_text_from_image", return_value=real_ocr_lines), \
+         patch("models.pipeline.run_pipeline.analyze_contract_clause", return_value=FAKE_ANALYSIS), \
+         patch("models.pipeline.run_pipeline.unload_translator") as mock_unload:
+        process_document("numbered_clean.jpg", translate=False)
+
+    mock_unload.assert_not_called()

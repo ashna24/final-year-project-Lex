@@ -1,4 +1,6 @@
-from model1b_paddleocr import extract_text_from_image
+from unittest.mock import patch
+import model1b_paddleocr
+from model1b_paddleocr import extract_text_from_image, get_default_ocr_engine, unload_ocr_engine
 
 
 # Checks the OCR function actually reads text from a real image
@@ -22,3 +24,32 @@ def test_returns_empty_list_when_no_result():
     result = extract_text_from_image("unused.jpg", ocr_engine=FakeOCREngine())
 
     assert result == []
+
+
+# Checks unloading clears the cache and the next call builds a fresh engine
+def test_unload_ocr_engine_clears_cache_and_forces_fresh_reload():
+    created = []
+
+    class FakeOCREngine:
+        def __init__(self):
+            created.append(self)
+
+    # Other tests in this file cache a real engine so save it and put it back after
+    # This stops the fake engine leaking into later tests
+    original_engine = model1b_paddleocr._ocr_engine
+    model1b_paddleocr._ocr_engine = None
+    try:
+        with patch("model1b_paddleocr.load_ocr_engine", side_effect=FakeOCREngine):
+            first_engine = get_default_ocr_engine()
+            assert model1b_paddleocr._ocr_engine is first_engine
+
+            unload_ocr_engine()
+            assert model1b_paddleocr._ocr_engine is None
+
+            second_engine = get_default_ocr_engine()
+
+        assert len(created) == 2  # a fresh engine was built and the old one was not reused
+        assert second_engine is not first_engine
+        assert model1b_paddleocr._ocr_engine is second_engine
+    finally:
+        model1b_paddleocr._ocr_engine = original_engine

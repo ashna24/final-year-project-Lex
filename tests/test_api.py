@@ -148,3 +148,45 @@ def test_translate_real_end_to_end():
     translation = response.json()["translation"]
     assert isinstance(translation, str)
     assert len(translation.strip()) > 0
+
+
+# Checks the translator is still unloaded when translation fails
+def test_translate_finally_unloads_translator_even_on_failure():
+    with (
+        patch("api.main.translate_to_urdu", side_effect=RuntimeError("boom")),
+        patch("api.main.unload_translator") as mock_unload,
+    ):
+        response = client.post("/translate", json={"text": "This is a test clause."})
+
+    assert response.status_code == 500
+    mock_unload.assert_called_once()
+
+
+# Checks NLLB is not left in memory after /translate So a later /analyze call never runs next to a loaded translator
+def test_translate_then_analyze_never_leaves_both_models_resident():
+    import models.extraction.model1b_paddleocr as ocr_module
+    import models.translation.model4_nllb as nllb_module
+
+    ocr_module._ocr_engine = object()  # pretends PaddleOCR is still loaded
+
+    try:
+        translate_response = client.post(
+            "/translate", json={"text": "The tenant must pay rent on the first day of each month."}
+        )
+        assert translate_response.status_code == 200
+        # The translator should be unloaded by now
+        assert nllb_module._translator is None
+
+        with patch("api.main.process_document", return_value=[]) as mock_process:
+            analyze_response = client.post(
+                "/analyze?translate=false",
+                files={"file": ("numbered_clean.jpg", SAMPLE_IMAGE_BYTES, "image/jpeg")},
+            )
+        assert analyze_response.status_code == 200
+        mock_process.assert_called_once()
+
+        # NLLB stays unloaded so PaddleOCR and NLLB were never in memory together
+        assert nllb_module._translator is None
+    finally:
+        ocr_module._ocr_engine = None
+        nllb_module._translator = None

@@ -6,11 +6,11 @@ from models.clause_splitter.splitter import (
     SECTION_HEADER_PATTERN,
     split_into_clauses,
 )
-from models.extraction.model1b_paddleocr import extract_text_from_image
-from models.translation.model4_nllb import translate_to_urdu
+from models.extraction.model1b_paddleocr import extract_text_from_image, unload_ocr_engine
+from models.translation.model4_nllb import translate_to_urdu, unload_translator
 
-# Below this word count, an unmarked clause (e.g. a title) is treated as too
-# trivial to classify, and not sent to the Llama classifier. Marked clauses (numbered or ARTICLE-style) skip this check entirely.
+# Below this word count, an unmarked clause (e.g. a title) is treated as too trivial to classify, and not sent to the Llama classifier. 
+# Marked clauses (numbered or ARTICLE-style) skip this check entirely.
 MIN_CLAUSE_WORD_COUNT = 5
 
 
@@ -69,8 +69,17 @@ def process_document(image_path: str, translate: bool = False) -> list[dict]:
         lines = extract_text_from_image(image_path)
     except Exception:
         return []  # unreadable or corrupt image
+    finally:
+        # OCR is finished so freeing it before the other models load
+        unload_ocr_engine()
 
     text = "\n".join(lines)
     clauses = split_into_clauses(text)
+
+    if translate:
+        try:
+            return [_process_clause(clause, translate) for clause in clauses]
+        finally:
+            unload_translator()
 
     return [_process_clause(clause, translate) for clause in clauses]

@@ -1,3 +1,5 @@
+import gc
+
 from paddleocr import PaddleOCR
 
 _ocr_engine = None
@@ -29,6 +31,14 @@ def extract_text_from_image(image_path, ocr_engine=None):
     if result and len(result) > 0:
         return result[0].get('rec_texts', [])  # recognized lines live under this key
     return []
+
+
+# Drops the cached OCR engine and forces Python to give the freed memory back to the OS
+def unload_ocr_engine():
+    global _ocr_engine
+    _ocr_engine = None
+    gc.collect()
+
 
 if __name__ == "__main__":
     print("\n--- EXTRACTING LEGAL TEXT ---")

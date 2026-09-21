@@ -11,7 +11,7 @@ from PIL import Image, UnidentifiedImageError
 from pydantic import BaseModel
 
 from models.pipeline.run_pipeline import process_document
-from models.translation.model4_nllb import translate_to_urdu
+from models.translation.model4_nllb import translate_to_urdu, unload_translator
 
 logger = logging.getLogger("lex.api")
 
@@ -77,5 +77,8 @@ def translate_text(request: TranslateRequest):
     except Exception:
         logger.exception("translate_to_urdu failed for a /translate request")
         raise HTTPException(status_code=500, detail="An internal error occurred while translating the text")
+    finally:
+        # Frees NLLB after every call so it never sits in memory next to PaddleOCR
+        unload_translator()
 
     return {"translation": translation}
