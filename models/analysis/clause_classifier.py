@@ -28,6 +28,11 @@ def analyze_contract_clause(clause_text):
         "stream": False,
         # Unloads the model right after each reply so it does not stay in memory next to NLLB
         "keep_alive": 0,
+        # Makes the same clause get the same rating every run
+        "options": {
+            "temperature": 0,
+            "seed": 42,
+        },
     }
 
     try:
