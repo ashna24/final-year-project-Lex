@@ -4,7 +4,6 @@ import type { ClauseResult, Language } from "../types";
 import { isSkipped } from "../types";
 import { RiskBadge, SkippedBadge } from "./RiskBadge";
 import { confidencePipCount } from "../lib/confidence";
-import { splitExplanation } from "../lib/splitExplanation";
 import { queueTranslation } from "../lib/translationQueue";
 
 interface ClauseCardProps {
@@ -98,8 +97,6 @@ export function ClauseCard({ clause, index, language }: ClauseCardProps) {
     );
   }
 
-  const { title, body } = splitExplanation(clause.explanation);
-
   return (
     <article className="clause-card" data-risk={clause.risk_level.toLowerCase()}>
       <div className="clause-card__meta">
@@ -113,12 +110,14 @@ export function ClauseCard({ clause, index, language }: ClauseCardProps) {
         {isError && <span className="clause-card__meta-right clause-card__no-score">No score</span>}
       </div>
 
-      <h3 className="clause-card__title">{title}</h3>
+      <p className="clause-card__section-label">Original wording</p>
+      <h3 className="clause-card__title">{clause.clause_text}</h3>
 
-      {showEnglish && body && <p className="clause-card__explanation">{body}</p>}
-      {showEnglish && !body && language === "en" && (
-        // Show the full explanation so the card is not left empty
-        <p className="clause-card__explanation">{title}</p>
+      {showEnglish && (
+        <>
+          <p className="clause-card__section-label">Explanation</p>
+          <p className="clause-card__explanation">{clause.explanation}</p>
+        </>
       )}
 
       {wantsUrdu && !isError && (
@@ -140,8 +139,6 @@ export function ClauseCard({ clause, index, language }: ClauseCardProps) {
           )}
         </div>
       )}
-
-      <OriginalWording text={clause.clause_text} />
     </article>
   );
 }

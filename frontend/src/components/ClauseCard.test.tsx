@@ -121,6 +121,24 @@ describe("ClauseCard", () => {
     expect(translateClauseText).toHaveBeenCalledWith("Plain English explanation.");
   });
 
+  it("shows the plain-English explanation in English and Both mode, and hides it in Urdu-only mode", () => {
+    const clause: ClassifiedClause = {
+      clause_text: "Some clause.",
+      risk_level: "Low",
+      confidence_score: 90,
+      explanation: "This explanation should look the same everywhere.",
+    };
+
+    const { rerender } = render(<ClauseCard clause={clause} index={0} language="en" />);
+    expect(screen.getAllByText(clause.explanation)).toHaveLength(1);
+
+    rerender(<ClauseCard clause={clause} index={0} language="both" />);
+    expect(screen.getAllByText(clause.explanation)).toHaveLength(1);
+
+    rerender(<ClauseCard clause={clause} index={0} language="ur" />);
+    expect(screen.queryByText(clause.explanation)).not.toBeInTheDocument();
+  });
+
   it("shows an inline error near the Urdu block on fetch failure, without touching the rest of the card", async () => {
     vi.mocked(translateClauseText).mockRejectedValue(new TranslateError("Could not reach the Lex server."));
 
