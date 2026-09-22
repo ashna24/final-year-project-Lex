@@ -103,13 +103,6 @@
   color: var(--text);
 }
 
-.header__logo-dot {
-  width: 10px;
-  height: 10px;
-  background: var(--accent);
-  align-self: center;
-}
-
 .header__tagline {
   font-size: 16px;
   color: var(--text-muted);
@@ -586,12 +579,13 @@
 }
 
 .clause-card__confidence-label {
-  font-size: 12px;
-  color: var(--text-faint);
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 
 .clause-card__pips {
   display: inline-flex;
+  align-items: center;
   gap: 3px;
 }
 
@@ -602,7 +596,19 @@
 }
 
 .clause-card__pip--on {
-  background: var(--pip-on);
+  background: var(--accent);
+}
+
+.clause-card[data-risk="high"] .clause-card__pip--on {
+  background: var(--risk-high-border);
+}
+
+.clause-card[data-risk="medium"] .clause-card__pip--on {
+  background: var(--risk-medium-border);
+}
+
+.clause-card[data-risk="low"] .clause-card__pip--on {
+  background: var(--risk-low-border);
 }
 
 .clause-card__title {

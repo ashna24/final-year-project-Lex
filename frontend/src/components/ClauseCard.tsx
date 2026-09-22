@@ -48,6 +48,7 @@ function useUrduExplanation(explanation: string, explanationUrdu: string | null 
   useEffect(() => {
     if (!needed || explanationUrdu || fetched || state === "loading") return;
     let cancelled = false;
+    // eslint-disable-next-line react/set-state-in-effect -- starts the fetch as soon as it is needed
     setState("loading");
     queueTranslation(explanation)
       .then((translation) => {
@@ -62,6 +63,7 @@ function useUrduExplanation(explanation: string, explanationUrdu: string | null 
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetched and state are only read as a guard here
   }, [needed, explanationUrdu, explanation]);
 
   return { text: explanationUrdu ?? fetched, state };
