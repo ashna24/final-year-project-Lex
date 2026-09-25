@@ -1,7 +1,6 @@
 export function Disclaimer() {
   return (
     <div className="disclaimer" role="note">
-      <div className="disclaimer__bar" aria-hidden="true" />
       <div className="disclaimer__content">
         <p className="disclaimer__eyebrow">Please read</p>
         <p className="disclaimer__body">

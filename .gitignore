@@ -16,6 +16,9 @@ __pycache__/
 # Dev log (personal notes)
 docs/devlog.md
 
+# Google Drive desktop sync placeholder files
+*.gdoc
+
 # pytest cache
 .pytest_cache/
 

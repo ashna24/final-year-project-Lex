@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { ChevronDown } from "lucide-react";
 import type { ClauseResult, Language } from "../types";
 import { isSkipped } from "../types";
 import { RiskBadge, SkippedBadge } from "./RiskBadge";
@@ -23,19 +22,6 @@ function ConfidencePips({ confidence }: { confidence: number }) {
         ))}
       </span>
     </span>
-  );
-}
-
-// The design hides the default arrow so this chevron shows it can be clicked
-function OriginalWording({ text }: { text: string }) {
-  return (
-    <details className="clause-card__original">
-      <summary>
-        Original wording
-        <ChevronDown className="clause-card__original-chevron" aria-hidden="true" size={14} strokeWidth={2} />
-      </summary>
-      <p>{text}</p>
-    </details>
   );
 }
 
@@ -90,9 +76,10 @@ export function ClauseCard({ clause, index, language }: ClauseCardProps) {
           <SkippedBadge />
           <span className="clause-card__kicker">{kicker}</span>
         </div>
-        <h3 className="clause-card__title">This part wasn't analysed.</h3>
+        <p className="clause-card__section-label">Original wording</p>
+        <h3 className="clause-card__title">{clause.clause_text}</h3>
+        <p className="clause-card__section-label">Explanation</p>
         <p className="clause-card__explanation">{clause.reason}</p>
-        <OriginalWording text={clause.clause_text} />
       </article>
     );
   }

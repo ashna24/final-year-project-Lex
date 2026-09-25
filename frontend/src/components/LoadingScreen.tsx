@@ -31,6 +31,13 @@ export function LoadingScreen({ fileName, onCancel }: LoadingScreenProps) {
         {fileName} · {stalled ? "still working — this one is taking longer than usual." : "this usually takes 60 to 90 seconds. You can leave this tab open."}
       </p>
 
+      {stage === 0 && (
+        <p className="loading-screen__ocr-note">
+          Lex is reading your document with OCR. Blurry, low resolution, or heavily degraded scans can
+          produce incomplete or inaccurate text, so please double-check the results against the original document.
+        </p>
+      )}
+
       <div
         className="progress-bar"
         role="progressbar"

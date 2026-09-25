@@ -118,25 +118,10 @@
 /* Disclaimer band */
 
 .disclaimer {
+  display: block;
   background: var(--accent-tint-bg);
   border-bottom: 2px solid var(--accent);
-}
-
-.disclaimer {
-  display: block;
-}
-
-.disclaimer > * {
-  max-width: 1100px;
-  margin: 0 auto;
-}
-
-.disclaimer {
   padding: 0;
-}
-
-.disclaimer__bar {
-  display: none;
 }
 
 .disclaimer__content {
@@ -342,6 +327,16 @@
   font-size: 16px;
   color: var(--text-muted);
   margin-bottom: 28px;
+}
+
+.loading-screen__ocr-note {
+  margin: 0 0 28px;
+  padding: 12px 16px;
+  background: var(--accent-tint-bg);
+  border: 1px solid var(--accent);
+  font-size: 13px;
+  color: var(--text-secondary);
+  max-width: 68ch;
 }
 
 .progress-bar {
@@ -684,44 +679,6 @@
   color: var(--text);
   max-width: none;
   margin-bottom: 0;
-}
-
-.clause-card__original {
-  border-top: 1px solid var(--border);
-  padding-top: 14px;
-}
-
-.clause-card__original summary {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--text-faint);
-  cursor: pointer;
-  list-style: none;
-}
-
-.clause-card__original summary::-webkit-details-marker {
-  display: none;
-}
-
-.clause-card__original-chevron {
-  transition: transform 0.15s ease;
-}
-
-.clause-card__original[open] summary .clause-card__original-chevron {
-  transform: rotate(180deg);
-}
-
-.clause-card__original p {
-  font-size: 14px;
-  line-height: 1.7;
-  color: var(--text-original);
-  max-width: 76ch;
-  margin-top: 12px;
 }
 
 /* Risk badges */
