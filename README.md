@@ -29,7 +29,7 @@ Everything runs locally — no document content is sent to any external API.
 
 | Layer | Stack |
 |---|---|
-| Backend | Python, FastAPI, PaddleOCR, PyMuPDF, Hugging Face Transformers (NLLB-200), Ollama (`llama3.2`) |
+| Backend | Python, FastAPI, PaddleOCR, PyMuPDF, Hugging Face Transformers (NLLB-200), Ollama (llama3.2) |
 | Frontend | React 19, TypeScript, Vite |
 | Testing | pytest (backend), Vitest + React Testing Library (frontend) |
 
@@ -52,7 +52,7 @@ archive/            Rejected models kept for comparison (EasyOCR, BART, DeBERTa,
 
 - Python 3.13
 - Node.js 18+
-- [Ollama](https://ollama.com), running locally with `llama3.2` pulled:
+- [Ollama](https://ollama.com), running locally with llama3.2 pulled:
   ```bash
   ollama pull llama3.2
   ollama serve
