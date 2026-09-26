@@ -45,7 +45,7 @@ models/
   pipeline/         Wires the above into one pipeline
 frontend/           React + Vite app
 tests/              Backend test suite (pytest)
-archive/            Rejected models kept for comparison (EasyOCR, BART, DeBERTa, Ollama(for translation))
+archive/            Rejected models kept for comparison (EasyOCR, BART, DeBERTa, Ollama (for translation))
 ```
 
 ## Prerequisites
@@ -57,9 +57,9 @@ archive/            Rejected models kept for comparison (EasyOCR, BART, DeBERTa,
   ollama pull llama3.2
   ollama serve
   ```
-  Classification requires Ollama to be reachable at `localhost:11434`. `/analyze`
+  Classification requires Ollama to be reachable at "localhost:11434". /analyze
   will still respond without it, but every clause comes back with
-  `risk_level: "Error"`.
+  risk_level: "Error".
 
 PaddleOCR and NLLB-200 download their own model weights automatically on first use
 (a few GB total) — the first real request will be slower than subsequent ones.
@@ -80,7 +80,7 @@ Run the API server:
 python3 -m uvicorn api.main:app --reload
 ```
 
-This starts the server at `http://127.0.0.1:8000`. `--reload` restarts it
+This starts the server at "http://127.0.0.1:8000". "--reload" restarts it
 automatically on code changes.
 
 ### Frontend
@@ -91,16 +91,16 @@ npm install
 npm run dev
 ```
 
-This starts the dev server at `http://localhost:5173`. The backend must also be
+This starts the dev server at "http://localhost:5173". The backend must also be
 running — the frontend calls it directly.
 
 ## API reference
 
-- `GET /health` — returns `{"status": "ok"}`.
-- `POST /analyze` — multipart upload (`file`: an image or PDF, up to 20 MB) with an
-  optional `translate` query parameter (`true`/`false`, default `false`). Runs the
+- GET /health — returns {"status": "ok"}.
+- POST /analyze — multipart upload (file: an image or PDF, up to 20 MB) with an
+  optional translate query parameter (true/false, default false). Runs the
   full pipeline and returns a list of per-clause results as JSON.
-- `POST /translate` — JSON body `{"text": "..."}`. Translates a single string to
+- POST /translate — JSON body {"text": "..."}. Translates a single string to
   Urdu without touching OCR or classification — used for on-demand, per-clause
   translation in the UI.
 
@@ -132,7 +132,7 @@ running. The frontend suite is fully mocked and runs in a couple of seconds.
 
 ## Known limitations
 
-- Performance is memory-dependent. PaddleOCR, NLLB-200, and Ollama's `llama3.2` are
+- Performance is memory-dependent. PaddleOCR, NLLB-200, and Ollama's llama3.2 are
   all loaded at different stages of a request rather than held in memory
   simultaneously, and each model is explicitly unloaded after use — but on a
   memory-constrained machine (eg 8 GB RAM), a full analysis can still range from
