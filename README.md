@@ -45,7 +45,7 @@ models/
   pipeline/         Wires the above into one pipeline
 frontend/           React + Vite app
 tests/              Backend test suite (pytest)
-archive/            Rejected models kept for comparison (EasyOCR, BART, DeBERTa,       Ollama(for translation))
+archive/            Rejected models kept for comparison (EasyOCR, BART, DeBERTa, Ollama(for translation))
 ```
 
 ## Prerequisites
